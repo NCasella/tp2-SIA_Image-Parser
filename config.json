@@ -1,0 +1,11 @@
+{
+  "triangles": 400,
+  "image_path": "images/input.jpg",
+  "population": 100,
+  "blocks": 10,
+  "selection_amount": 30,
+  "selection": "elite",
+  "criteria": "traditional",
+  "crossover": "one_point",
+  "mutation": "gen"
+}
