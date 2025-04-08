@@ -46,9 +46,33 @@ def roulette_selection(individuals: list[Individual],choice_amount: int):
         for i in range(len(accumulated_fitness_per_individual)-1):
             if accumulated_fitness_per_individual[i]<r and r<=accumulated_fitness_per_individual[i+1]:
                 selected_individuals.append(individuals[i])
-                continue
+                break
     return selected_individuals
+
+def universal_selection(individuals: list[Individual],choice_amount: int):
+    fitness_sum=0
+    fitness_per_individual=[]
+    for individual in individuals:
+        individual_fitness=_calculate_fitness(individual=individual)
+        fitness_sum+=individual_fitness
+        fitness_per_individual.append(individual_fitness)
     
+    accumulated_fitness_per_individual=[0]
+    last_accumulated_fitness=0
+    for fitness in fitness_per_individual:
+        relative_fitness=fitness/fitness_sum
+        last_accumulated_fitness+=relative_fitness
+        accumulated_fitness_per_individual.append(last_accumulated_fitness)
+    
+    selected_individuals=[]
+    for i in range(choice_amount):
+        r=random.uniform(0,1)
+        ri=(r+i)/choice_amount
+        for p in range(len(accumulated_fitness_per_individual)-1):
+            if accumulated_fitness_per_individual[p]<ri and ri<=accumulated_fitness_per_individual[p+1]:
+                selected_individuals.append(individuals[p])
+                break
+    return selected_individuals
     
 
 def elite_selection(individuals: list[Individual],choice_amount: int):
@@ -115,7 +139,7 @@ def selection(individuals: list[Individual]):
         "deterministic_tournament": deterministic_tournament_selection,
         "probabilistic_tournament": probabilistic_tournament_selection,
         "boltzman": lambda: None,
-        "universal": lambda: None,
+        "universal": universal_selection,
         "ranking": lambda: None,
     }
     return selection_methods[selection_method](individuals, choice_amount)
