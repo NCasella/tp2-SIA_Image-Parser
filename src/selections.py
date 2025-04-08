@@ -65,13 +65,46 @@ def elite_selection(individuals: list[Individual]):
             new_list.append(individual)
     return new_list
 
+def deterministic_tournament_selection(individuals: list[Individual]):
+    tournament_size=10 #TODO hacer el M dinamico
+    choice_amount = config["selection_amount"]
+    fitness_per_individual=[_calculate_fitness(individual=individual) for individual in individuals]
+    
+    selected_individuals=[]
+    while len(selected_individuals)<choice_amount:
+        tournament_indices = random.sample(range(len(individuals)), tournament_size)
+        tournament_individuals = [individuals[i] for i in tournament_indices]
+        tournament_fitnesses = [fitness_per_individual[i] for i in tournament_indices]
+        
+        best_index = tournament_fitnesses.index(max(tournament_fitnesses))
+        selected_individuals.append(tournament_individuals[best_index])
+
+    return selected_individuals
+  
+def probabilistic_tournament_selection(individuals: list[Individual]):
+    choice_amount = config["selection_amount"]
+    selected_individuals=[]
+    
+    while(len(selected_individuals))<choice_amount:
+        threshold=random.uniform(0.5, 1)
+        individual1,individual2=random.sample(individuals,k=2)
+        r=random.uniform(0,1)
+        best_fit_individual=individual1 if _calculate_fitness(individual=individual1)>_calculate_fitness(individual=individual2) else individual2
+        worst_fit_individual=individual2 if best_fit_individual==individual1 else individual1
+        selected_individuals.append(best_fit_individual) if r<threshold else selected_individuals.append(worst_fit_individual)
+        
+    return selected_individuals
+
+    
+
+
 def selection(individuals: list[Individual]):
     selection_method: str = config["selection"]
     selection_methods: dict[str, callable] = {
         "elite": elite_selection,
-        "roulette": lambda: None,
-        "deterministic_tournament": lambda: None,
-        "probabilistic_tournament": lambda: None,
+        "roulette": roulette_selection,
+        "deterministic_tournament": deterministic_tournament_selection,
+        "probabilistic_tournament": probabilistic_tournament_selection,
         "boltzman": lambda: None,
         "universal": lambda: None,
         "ranking": lambda: None,
