@@ -3,6 +3,7 @@ from PIL.Image import Image
 from src.individual import Individual
 from math import ceil
 from src.config import config
+import random
 
 from multiprocessing import Pool
 
@@ -24,6 +25,20 @@ def _calculate_fitness(individual: Individual):
 
 def roulette_selection(individuals: list[Individual]):
     choice_amount = config["selection_amount"]
+    
+    fitness_sum=0
+    fitness_per_individual=[]
+    for individual in individuals:
+        individual_fitness=_calculate_fitness(individual=individual)
+        fitness_sum+=individual_fitness
+        fitness_per_individual.append(individual_fitness)
+    
+    if fitness_sum==0:
+        return random.choices(individuals, k=choice_amount)
+    
+    probabilites=[f/fitness_sum for f in fitness_per_individual]
+    return random.choices(individuals, weights=probabilites, k=choice_amount)
+    
 
 def elite_selection(individuals: list[Individual]):
 
