@@ -33,11 +33,22 @@ def roulette_selection(individuals: list[Individual]):
         fitness_sum+=individual_fitness
         fitness_per_individual.append(individual_fitness)
     
-    if fitness_sum==0:
-        return random.choices(individuals, k=choice_amount)
+    accumulated_fitness_per_individual=[0]
+    last_accumulated_fitness=0
+    for fitness in fitness_per_individual:
+        relative_fitness=fitness/fitness_sum
+        last_accumulated_fitness+=relative_fitness
+        accumulated_fitness_per_individual.append(last_accumulated_fitness)
     
-    probabilites=[f/fitness_sum for f in fitness_per_individual]
-    return random.choices(individuals, weights=probabilites, k=choice_amount)
+    selected_individuals=[]
+    while len(selected_individuals)<choice_amount:
+        r=random.uniform(0,1)
+        for i in range(len(accumulated_fitness_per_individual)-1):
+            if accumulated_fitness_per_individual[i]<r and r<=accumulated_fitness_per_individual[i+1]:
+                selected_individuals.append(individuals[i])
+                continue
+    return selected_individuals
+    
     
 
 def elite_selection(individuals: list[Individual]):
