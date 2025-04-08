@@ -23,8 +23,8 @@ def _calculate_fitness(individual: Individual):
             temp_fitness += total_diff
     return temp_fitness
 
-def roulette_selection(individuals: list[Individual]):
-    choice_amount = config["selection_amount"]
+def roulette_selection(individuals: list[Individual],choice_amount: int):
+
     
     fitness_sum=0
     fitness_per_individual=[]
@@ -51,7 +51,7 @@ def roulette_selection(individuals: list[Individual]):
     
     
 
-def elite_selection(individuals: list[Individual]):
+def elite_selection(individuals: list[Individual],choice_amount: int):
 
     # we set the fitness of the individuals and sort them desc
     with Pool() as pool:
@@ -63,7 +63,6 @@ def elite_selection(individuals: list[Individual]):
 
     _length = len(sorted_individuals)
 
-    choice_amount: int = config["selection_amount"]
 
     # case when K is less than N
     if choice_amount < _length:
@@ -76,9 +75,8 @@ def elite_selection(individuals: list[Individual]):
             new_list.append(individual)
     return new_list
 
-def deterministic_tournament_selection(individuals: list[Individual]):
+def deterministic_tournament_selection(individuals: list[Individual],choice_amount: int):
     tournament_size=10 #TODO hacer el M dinamico
-    choice_amount = config["selection_amount"]
     fitness_per_individual=[_calculate_fitness(individual=individual) for individual in individuals]
     
     selected_individuals=[]
@@ -92,8 +90,7 @@ def deterministic_tournament_selection(individuals: list[Individual]):
 
     return selected_individuals
   
-def probabilistic_tournament_selection(individuals: list[Individual]):
-    choice_amount = config["selection_amount"]
+def probabilistic_tournament_selection(individuals: list[Individual],choice_amount: int):
     selected_individuals=[]
     
     while(len(selected_individuals))<choice_amount:
@@ -111,6 +108,7 @@ def probabilistic_tournament_selection(individuals: list[Individual]):
 
 def selection(individuals: list[Individual]):
     selection_method: str = config["selection"]
+    choice_amount = config["selection_amount"]
     selection_methods: dict[str, callable] = {
         "elite": elite_selection,
         "roulette": roulette_selection,
@@ -120,4 +118,4 @@ def selection(individuals: list[Individual]):
         "universal": lambda: None,
         "ranking": lambda: None,
     }
-    return selection_methods[selection_method](individuals)
+    return selection_methods[selection_method](individuals, choice_amount)
