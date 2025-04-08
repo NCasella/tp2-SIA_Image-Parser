@@ -1,10 +1,8 @@
 from PIL import Image, ImageDraw
 from src.individual import Individual
-from src.chromosome import Chromosome
 
 def generate_output(individual, image_width, image_height):
     output = Image.new("RGBA", (image_width, image_height))
-    draw = ImageDraw.Draw(output)
 
     for chromosome in individual.chromosomes:
         overlay = Image.new("RGBA", (image_width, image_height), (0, 0, 0, 0))
@@ -17,6 +15,6 @@ def generate_output(individual, image_width, image_height):
     return rgb_output
 
 
-individual = Individual.generate_random_individual(150, 900)
+individual = Individual.generate_random_individual(150)
 
 generate_output(individual, 900, 900)

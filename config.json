@@ -2,10 +2,15 @@
   "triangles": 400,
   "image_path": "images/input.jpg",
   "population": 100,
-  "blocks": 10,
-  "selection_amount": 30,
+  "quality_factor": 1,
+  "max_generations": 50,
   "selection": "elite",
-  "criteria": "traditional",
+  "selection_amount": 30,
   "crossover": "one_point",
-  "mutation": "gen"
+  "crossover_chance": 1.0,
+  "mutation_strategy": "new",
+  "mutation": "gen",
+  "mutation_chance": 1.0,
+  "criteria": "traditional",
+  "generation_gap": 1.0
 }

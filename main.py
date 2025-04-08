@@ -1,9 +1,13 @@
-import json
 import sys
 from PIL import Image
+
+from src.config import init_config, config
 from src.individual import Individual
+from src.selections import selection
+from src.crossovers import crossover
+from src.mutations import mutate
+from src.generations import next_generation
 import os
-from src.selections import calculate_fitness
 
 def main():
 
@@ -11,67 +15,43 @@ def main():
     print("Missing 'config.json' as parameter")
     exit(1)
 
-  with open(sys.argv[1]) as config_file:
-    config = json.load(config_file)
+  init_config(sys.argv[1])
 
   # read the config
   N: int = config["triangles"]
   image_path: str = config["image_path"]
   population_amount: int = config["population"]
-  blocks: int = config["blocks"]
-  selection_amount: int = config["selection_amount"]
+  quality_factor: float = config["quality_factor"]
 
   # read the original image
-  global image
   image = Image.open(image_path)
   width, height = image.size
-  block_width, block_height = width // blocks, height // blocks
-  global resized_image
-  resized_image = image.resize((block_width, block_height))
+  block_width, block_height = int(width * quality_factor), int(height * quality_factor)
+
+  # save the image on our config
+  config["image"] = image.resize((block_width, block_height))
+  config["max_coordinate"] = max(2*width, 2*height)
 
   # generate the initial population
-  population: list[Individual] = list()
+  population: list[Individual] = []
   for _ in range(population_amount):
-    population.append(Individual.generate_random_individual(max_coordinate=max(width, height), chromosome_amount=N))
-  
-  print(calculate_fitness(image=image, individuals=population))
+    population.append(Individual.generate_random_individual(chromosome_amount=N))
 
-  # selection
-  selection_methods:dict[str,callable] = {
-    "elite":lambda: None,
-    "roulette":lambda: None,
-    "deterministic_tournament":lambda: None,
-    "probabilistic_tournament":lambda: None,
-    "boltzman":lambda: None,
-    "universal":lambda: None,
-    "ranking":lambda: None,
-  }
-  crossover_methods:dict[str,callable] = {
-    "one_point":lambda: None,
-    "two_points":lambda: None,
-    "uniform":lambda: None,
-    "annul":lambda:None
-  }
-  mutation_methods:dict[str,callable] = {
-    "gen":lambda: None,
-    "multi_gen":lambda: None,
-    "uniform":lambda: None,
-    "non_uniform":lambda:None
-  }
-  criteria_methods:dict[str,callable] = {
-    "traditional":lambda: None,
-    "young":lambda: None,
-  }
+  # apply the method
+  max_generations: int = config["max_generations"]
 
-
-  # save output
   os.makedirs("images", exist_ok=True)
-  resized_image.save("./images/resized_output.png")
+
+  for generation in range(max_generations):
+    print(f"Generation {generation}")
+    selected_individuals = selection(population)
+    selected_individuals[0].get_current_image(width, height).save(f"images/generation-{generation}.png")
+    children = crossover(selected_individuals)
+    mutate(children)
+    population = next_generation(population, children)
+    print(len(population))
 
   image.close()
-  
-  ## selection,mutation crossover, etc
-
 
 if __name__ == "__main__":
   main()
