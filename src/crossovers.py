@@ -2,7 +2,7 @@ import copy
 
 from src.config import config
 from src.individual import Individual
-from src.chromosome import *
+from src.chromosome import Chromosome, Genes
 import random
 
 
@@ -14,7 +14,6 @@ def point_crossover(selected_individuals: list[Individual]) -> list[Individual]:
     _length = len(selected_individuals)
 
     chromosomes_amount = len(selected_individuals[0].chromosomes)
-    genes_per_chromosome = len(selected_individuals[0].chromosomes[0].genes)
 
     for i in range(0, _length - 1, 2):
         first = copy.deepcopy(selected_individuals[i])
