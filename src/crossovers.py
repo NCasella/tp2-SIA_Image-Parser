@@ -37,7 +37,7 @@ def point_crossover(selected_individuals: list[Individual]) -> list[Individual]:
     return new_population
 def uniform_crossover(selected_individuals: list[Individual])-> list[Individual]:
     crossover_chance: float = config["crossover_chance"]
-    uniform_crossover_chance: float = config["uniform_crossover_change"]
+    uniform_crossover_chance: float = config["uniform_crossover_chance"]
     new_population: list[Individual] = []
     
     random.shuffle(selected_individuals)
