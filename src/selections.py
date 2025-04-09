@@ -1,4 +1,7 @@
 from PIL.Image import Image
+from PIL.ImageChops import difference
+from PIL.ImageStat import Stat
+from PIL.ImageOps import invert
 
 from src.individual import Individual
 from math import ceil
@@ -20,15 +23,19 @@ def _optimized_calculate_fitness(individual: Individual):
 
 def _calculate_fitness(individual: Individual):
     image: Image = config["image"]
-    temp_fitness = 0
+    #temp_fitness = 0
     width, height = image.size
     output_img = individual.get_current_image(width, height)
-    for i in range(width):
-        for j in range(height):
-            pixel_out = output_img.getpixel((i, j))
-            pixel_ref = image.getpixel((i, j))
-            temp_fitness += sum(255 - abs(out - ref) for out, ref in zip(pixel_ref[:3], pixel_out[:3]))
-    return temp_fitness
+
+    stat = Stat(invert(difference(image, output_img).convert("RGB")))
+    return sum(stat.sum)
+
+    #for i in range(width):
+    #    for j in range(height):
+    #        pixel_out = output_img.getpixel((i, j))
+    #        pixel_ref = image.getpixel((i, j))
+    #        temp_fitness += sum(255 - abs(out - ref) for out, ref in zip(pixel_ref[:4], pixel_out[:4]))
+    #return temp_fitness
 
 def roulette_selection(individuals: list[Individual],choice_amount: int):
     fitness_sum=0
@@ -134,7 +141,7 @@ def probabilistic_tournament_selection(individuals: list[Individual],choice_amou
     
 
 
-def selection(individuals: list[Individual]):
+def selection(individuals: list[Individual]) -> list[Individual]:
     selection_method: str = config["selection"]
     choice_amount = config["selection_amount"]
     selection_methods: dict[str, callable] = {

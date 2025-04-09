@@ -1,6 +1,5 @@
 from src.chromosome import Chromosome
 from PIL import Image, ImageDraw
-from src.config import config
 
 class Individual:
     @staticmethod
@@ -19,12 +18,11 @@ class Individual:
         for chromosome in self.chromosomes:
             overlay = Image.new("RGBA", (image_width, image_height), (0, 0, 0, 0))
             overlay_draw = ImageDraw.Draw(overlay)
-            overlay_draw.polygon(chromosome.get_vertices(), fill=chromosome.get_rgba())
+            overlay_draw.polygon(chromosome.get_vertices(), fill=tuple(chromosome.get_rgba()))
             output = Image.alpha_composite(output, overlay)
             overlay.close()
 
-        rgb_output = output.convert("RGB")
-        return rgb_output
+        return output
 
     def __str__(self):
         return f"""

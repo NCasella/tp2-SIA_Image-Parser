@@ -1,10 +1,10 @@
 {
   "continue_latest": false,
-  "triangles": 50,
-  "image_path": "images/japan.png",
+  "triangles": 15,
+  "image_path": "images/nepal.jpg",
   "population": 100,
   "quality_factor": 1,
-  "max_generations": 500,
+  "max_generations": 10000,
   "selection": "elite",
   "selection_amount": 70,
   "crossover": "one_point",

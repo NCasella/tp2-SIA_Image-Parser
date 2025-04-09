@@ -180,3 +180,7 @@ cython_debug/
 images
 images/
 images/*
+
+output
+output/
+output/*

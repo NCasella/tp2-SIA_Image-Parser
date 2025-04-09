@@ -1,5 +1,6 @@
 import copy
 
+from src.chromosome import Chromosome
 from src.config import config
 from src.individual import Individual
 import random
@@ -20,14 +21,9 @@ def point_crossover(selected_individuals: list[Individual]) -> list[Individual]:
         second = copy.deepcopy(selected_individuals[i + 1])
         for j in range(chromosomes_amount):
             if random.random() < crossover_chance:
-                exchange_point = random.randint(1, genes_per_chromosome - 1)
                 first_genes = first.chromosomes[j].genes
                 second_genes = second.chromosomes[j].genes
-
-                first_genes[:exchange_point], second_genes[:exchange_point] = (
-                    second_genes[:exchange_point],
-                    first_genes[:exchange_point],
-                )
+                Chromosome.exchange_genes(first_genes, second_genes)
 
                 first.fitness = 0.0
                 second.fitness = 0.0
