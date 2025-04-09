@@ -37,12 +37,21 @@ def gen_mutation(individuals: list[Individual]):
         for chromosome in individual.chromosomes:
             _gen_mutate(chromosome, individual)
 
+def uniform_mutation(individuals: list[Individual]):
+    mutation_chance: float = config["mutation_chance"]
+    for individual in individuals:
+        for chromosome in individual.chromosomes:
+            for i in range(len(chromosome.genes)):
+                if random.random()<mutation_chance:
+                    _mutate_gene_at(chromosome.genes,i)
+                    individual.fitness=0.0
+            
 def mutate(individuals: list[Individual]):
     mutation_method = config["mutation"]
     mutation_methods: dict[str, callable] = {
         "gen": gen_mutation,
         "multi_gen": lambda: None,
-        "uniform": lambda: None,
+        "uniform": uniform_mutation,
         "non_uniform": lambda: None
     }
     mutation_methods[mutation_method](individuals)
