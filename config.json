@@ -13,5 +13,6 @@
   "mutation": "gen",
   "mutation_chance": 0.1,
   "criteria": "traditional",
-  "generation_gap": 0.5
+  "generation_gap": 0.5,
+  "uniform_crossover_chance":0.5
 }
