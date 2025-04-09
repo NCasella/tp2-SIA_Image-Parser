@@ -1,4 +1,5 @@
 import sys
+import logging
 from PIL import Image
 
 from src.config import init_config, config
@@ -18,6 +19,11 @@ def main():
     print("Missing 'config.json' as parameter")
     exit(1)
 
+  # init the logger
+  logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  logger = logging.getLogger("SIA_G8")
+
+  # init the config
   init_config(sys.argv[1])
 
   # read the config
@@ -38,14 +44,15 @@ def main():
   os.makedirs("images", exist_ok=True)
 
   # generate the initial population
-
   population: list[Individual] = []
 
   continue_latest: bool = config["continue_latest"]
   if continue_latest and os.path.isfile("images/latest.pkl"):
     with open("images/latest.pkl", "rb") as latest_file:
+      logger.info("Using the latest generation as the initial population...")
       population = pickle.load(latest_file)
   else:
+    logger.info("Generating a new population...")
     with Pool(processes=cpu_count()) as pool:
       individuals = pool.map(Individual.generate_random_individual, [N] * population_amount)
     population.extend(individuals)
@@ -54,13 +61,14 @@ def main():
   max_generations: int = config["max_generations"]
 
   for generation in range(max_generations):
-    print(f"Generation {generation}")
+    logger.info(f"Generation %s", generation)
     selected_individuals = selection(population)
     selected_individuals[0].get_current_image(width, height).save(f"images/generation-{generation}.png")
     children = crossover(selected_individuals)
     mutate(children)
     population = next_generation(population, children)
 
+  # save the latest generation
   with open("images/latest.pkl", "wb") as latest_file:
     pickle.dump(population, latest_file)
 
