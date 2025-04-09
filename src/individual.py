@@ -1,5 +1,6 @@
 from src.chromosome import Chromosome
 from PIL import Image, ImageDraw
+from src.config import config
 
 class Individual:
     @staticmethod
@@ -10,9 +11,7 @@ class Individual:
         return Individual(chromosomes=chromosomes)
 
     def __lt__(self, other):
-        if isinstance(other, Individual):
-            return self.fitness < other.fitness
-        return False
+        return self.fitness < other.fitness
 
     def get_current_image(self, image_width: int, image_height: int) -> Image:
         output = Image.new("RGBA", (image_width, image_height))
@@ -26,6 +25,15 @@ class Individual:
 
         rgb_output = output.convert("RGB")
         return rgb_output
+
+    def __str__(self):
+        return f"""
+            chromosomes: {self.chromosomes},
+            fitness: {self.fitness}
+        """
+
+    def __repr__(self):
+        return str(self)
 
     def __init__(self, chromosomes:list[Chromosome]):
         self.chromosomes=chromosomes

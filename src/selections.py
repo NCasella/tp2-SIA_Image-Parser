@@ -5,7 +5,18 @@ from math import ceil
 from src.config import config
 import random
 
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
+
+def _optimized_calculate_fitness(individual: Individual):
+    """
+    Calculate fitness of individual in an optimized way, avoiding recalculating fitness values.
+    Requires special handling on the crossover and mutation methods.
+    :param individual: the individual whose fitness should be calculated
+    :return: the fitness of the individual
+    """
+    if individual.fitness != 0.0:
+        return individual.fitness
+    return _calculate_fitness(individual)
 
 def _calculate_fitness(individual: Individual):
     image: Image = config["image"]
@@ -14,18 +25,12 @@ def _calculate_fitness(individual: Individual):
     output_img = individual.get_current_image(width, height)
     for i in range(width):
         for j in range(height):
-            output_r, output_g, output_b = output_img.getpixel((i, j))
-            image_r, image_g, image_b = image.getpixel((i, j))
-            r_diff = 255 - abs(output_r - image_r)
-            g_diff = 255 - abs(output_g - image_g)
-            b_diff = 255 - abs(output_b - image_b)
-            total_diff = r_diff + g_diff + b_diff
-            temp_fitness += total_diff
+            pixel_out = output_img.getpixel((i, j))
+            pixel_ref = image.getpixel((i, j))
+            temp_fitness += sum(255 - abs(out - ref) for out, ref in zip(pixel_ref[:3], pixel_out[:3]))
     return temp_fitness
 
 def roulette_selection(individuals: list[Individual],choice_amount: int):
-
-    
     fitness_sum=0
     fitness_per_individual=[]
     for individual in individuals:
@@ -78,15 +83,14 @@ def universal_selection(individuals: list[Individual],choice_amount: int):
 def elite_selection(individuals: list[Individual],choice_amount: int):
 
     # we set the fitness of the individuals and sort them desc
-    with Pool() as pool:
-        fitness_values = pool.map(_calculate_fitness, individuals)
+    with Pool(processes=max(3 * cpu_count() // 4, 1)) as pool:
+        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
     for i, individual in enumerate(individuals):
         individual.fitness = fitness_values[i]
     # new list, so we can modify it on the crossover
-    sorted_individuals = sorted(individuals, reverse=True)
+    sorted_individuals = sorted(individuals, key=lambda ind: ind.fitness, reverse=True)
 
     _length = len(sorted_individuals)
-
 
     # case when K is less than N
     if choice_amount < _length:

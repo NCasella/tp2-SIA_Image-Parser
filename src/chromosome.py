@@ -37,5 +37,11 @@ class Chromosome:
     def get_vertices(self) -> TriangleVertices:
         return self.genes[1]
 
+    def __str__(self):
+        return f"genes: {self.genes}"
+
+    def __repr__(self):
+        return str(self)
+
     def __init__(self, genes: Genes):
         self.genes = genes

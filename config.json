@@ -1,16 +1,17 @@
 {
-  "triangles": 400,
-  "image_path": "images/input.jpg",
+  "continue_latest": false,
+  "triangles": 50,
+  "image_path": "images/japan.png",
   "population": 100,
   "quality_factor": 1,
-  "max_generations": 50,
+  "max_generations": 500,
   "selection": "elite",
-  "selection_amount": 30,
+  "selection_amount": 70,
   "crossover": "one_point",
-  "crossover_chance": 1.0,
+  "crossover_chance": 0.8,
   "mutation_strategy": "new",
   "mutation": "gen",
-  "mutation_chance": 1.0,
+  "mutation_chance": 0.1,
   "criteria": "traditional",
-  "generation_gap": 1.0
+  "generation_gap": 0.5
 }

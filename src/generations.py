@@ -10,9 +10,9 @@ def _traditional_next_generation(current_population: list[Individual], children:
     _length = len(current_population)
     old_amount = int((1 - generation_gap) * _length)
     new_amount = _length - old_amount
-
-    remaining_gen = random.sample(current_population, old_amount)
-    population = [individual for individual in current_population if individual not in remaining_gen]
+    random.shuffle(current_population)
+    remaining_gen = current_population[:old_amount]
+    population = current_population[old_amount:]
     joined_population = population + children
     return remaining_gen + random.choices(joined_population, k=new_amount)
 

@@ -22,7 +22,7 @@ def _mutate_gene_at(genes: Genes, index: int):
     else:
         random.choice([_new, _delta])(genes, index)
 
-def _gen_mutate(chromosome: Chromosome):
+def _gen_mutate(chromosome: Chromosome, individual: Individual):
     mutation_chance: float = config["mutation_chance"]
     chance = random.random()
     if chance < mutation_chance:
@@ -30,11 +30,12 @@ def _gen_mutate(chromosome: Chromosome):
         genes_amount = len(genes)
         random_gene_index = random.randint(0, genes_amount - 1)
         _mutate_gene_at(genes, random_gene_index)
+        individual.fitness = 0.0
 
 def gen_mutation(individuals: list[Individual]):
     for individual in individuals:
         for chromosome in individual.chromosomes:
-            _gen_mutate(chromosome)
+            _gen_mutate(chromosome, individual)
 
 def mutate(individuals: list[Individual]):
     mutation_method = config["mutation"]

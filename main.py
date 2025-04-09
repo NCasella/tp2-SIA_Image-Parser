@@ -8,6 +8,9 @@ from src.crossovers import crossover
 from src.mutations import mutate
 from src.generations import next_generation
 import os
+import pickle
+
+from multiprocessing import Pool, cpu_count
 
 def main():
 
@@ -30,17 +33,25 @@ def main():
 
   # save the image on our config
   config["image"] = image.resize((block_width, block_height))
-  config["max_coordinate"] = max(2*width, 2*height)
+  config["max_coordinate"] = max(2 * width, 2 * height)
+
+  os.makedirs("images", exist_ok=True)
 
   # generate the initial population
+
   population: list[Individual] = []
-  for _ in range(population_amount):
-    population.append(Individual.generate_random_individual(chromosome_amount=N))
+
+  continue_latest: bool = config["continue_latest"]
+  if continue_latest and os.path.isfile("images/latest.pkl"):
+    with open("images/latest.pkl", "rb") as latest_file:
+      population = pickle.load(latest_file)
+  else:
+    with Pool(processes=cpu_count()) as pool:
+      individuals = pool.map(Individual.generate_random_individual, [N] * population_amount)
+    population.extend(individuals)
 
   # apply the method
   max_generations: int = config["max_generations"]
-
-  os.makedirs("images", exist_ok=True)
 
   for generation in range(max_generations):
     print(f"Generation {generation}")
@@ -49,7 +60,9 @@ def main():
     children = crossover(selected_individuals)
     mutate(children)
     population = next_generation(population, children)
-    print(len(population))
+
+  with open("images/latest.pkl", "wb") as latest_file:
+    pickle.dump(population, latest_file)
 
   image.close()
 
