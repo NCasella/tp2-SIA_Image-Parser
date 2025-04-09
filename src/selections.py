@@ -1,7 +1,7 @@
 from PIL.Image import Image
 
 from src.individual import Individual
-from math import ceil
+from math import ceil, exp
 from src.config import config
 import random
 
@@ -30,14 +30,7 @@ def _calculate_fitness(individual: Individual):
             temp_fitness += sum(255 - abs(out - ref) for out, ref in zip(pixel_ref[:3], pixel_out[:3]))
     return temp_fitness
 
-def roulette_selection(individuals: list[Individual],choice_amount: int):
-    fitness_sum=0
-    fitness_per_individual=[]
-    for individual in individuals:
-        individual_fitness=_calculate_fitness(individual=individual)
-        fitness_sum+=individual_fitness
-        fitness_per_individual.append(individual_fitness)
-    
+def _roulette_selection(individuals: list[Individual], choice_amount: int, fitness_per_individual: list[float], fitness_sum: float):
     accumulated_fitness_per_individual=[0]
     last_accumulated_fitness=0
     for fitness in fitness_per_individual:
@@ -53,6 +46,16 @@ def roulette_selection(individuals: list[Individual],choice_amount: int):
                 selected_individuals.append(individuals[i])
                 break
     return selected_individuals
+
+def roulette_selection(individuals: list[Individual],choice_amount: int):
+    fitness_sum=0
+    fitness_per_individual=[]
+    for individual in individuals:
+        individual_fitness=_calculate_fitness(individual=individual)
+        fitness_sum+=individual_fitness
+        fitness_per_individual.append(individual_fitness)
+    
+    return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=fitness_per_individual, fitness_sum=fitness_sum)
 
 def universal_selection(individuals: list[Individual],choice_amount: int):
     fitness_sum=0
@@ -83,7 +86,7 @@ def universal_selection(individuals: list[Individual],choice_amount: int):
 def elite_selection(individuals: list[Individual],choice_amount: int):
 
     # we set the fitness of the individuals and sort them desc
-    with Pool(processes=max(3 * cpu_count() // 4, 1)) as pool:
+    with Pool() as pool:
         fitness_values = pool.map(_optimized_calculate_fitness, individuals)
     for i, individual in enumerate(individuals):
         individual.fitness = fitness_values[i]
@@ -131,6 +134,46 @@ def probabilistic_tournament_selection(individuals: list[Individual],choice_amou
         
     return selected_individuals
 
+def boltzmann_selection(individuals: list[Individual],choice_amount: int):
+    temperature = config["temperature"]
+    fitness_per_individual=[]
+    with Pool() as pool:
+        fitness_per_individual = pool.map(_optimized_calculate_fitness, individuals)
+    
+    fitness_sum = sum(fitness_per_individual)
+    #calcular la pseudo-aptitud ExpVal() con la aptiitud normalizada, sino la aptitud es demasiado grande para el exponente
+    #solo el numerador de ExpVal():
+    exp_fitness_per_individual=[exp(fitness/fitness_sum/temperature) for fitness in fitness_per_individual]
+    exp_sum=sum(exp_fitness_per_individual)
+
+    #dividiendo por el promedio -> denominador de ExpVal():
+    average=exp_sum/len(exp_fitness_per_individual)
+    exp_fitness_per_individual=[fitness/average for fitness in exp_fitness_per_individual]
+    exp_fitness_sum=exp_sum/average
+
+    return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=exp_fitness_per_individual, fitness_sum=exp_fitness_sum)
+
+def ranking_selecion(individuals: list[Individual],choice_amount: int):
+    N=len(individuals)
+
+    fitness_sum=0
+    fitness_per_individual=[]
+    for individual in individuals:
+        individual_fitness=_calculate_fitness(individual=individual)
+        fitness_sum+=individual_fitness
+        fitness_per_individual.append((individual, individual_fitness))
+    
+    sorted_fitness = sorted(fitness_per_individual, key=lambda x: x[1], reverse=True)
+    sorted_individuals = [individual for individual, _ in sorted_fitness]
+
+    ranked_fitness_sum=0
+    ranked_fitness = []
+    for individual in individuals:
+        rank = sorted_individuals.index(individual) + 1
+        ranked_fitness.append((N-rank)/N)
+        ranked_fitness_sum+=(N-rank)/N
+
+    return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=ranked_fitness, fitness_sum=ranked_fitness_sum)
     
 
 
@@ -142,8 +185,8 @@ def selection(individuals: list[Individual]):
         "roulette": roulette_selection,
         "deterministic_tournament": deterministic_tournament_selection,
         "probabilistic_tournament": probabilistic_tournament_selection,
-        "boltzman": lambda: None,
+        "boltzmann": boltzmann_selection,
         "universal": universal_selection,
-        "ranking": lambda: None,
+        "ranking": ranking_selecion,
     }
     return selection_methods[selection_method](individuals, choice_amount)

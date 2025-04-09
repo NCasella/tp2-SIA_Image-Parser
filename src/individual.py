@@ -34,6 +34,9 @@ class Individual:
 
     def __repr__(self):
         return str(self)
+    
+    def __eq__(self, other):
+        return self.chromosomes == other.chromosomes and self.fitness == other.fitness
 
     def __init__(self, chromosomes:list[Chromosome]):
         self.chromosomes=chromosomes

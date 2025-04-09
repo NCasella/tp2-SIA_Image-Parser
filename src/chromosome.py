@@ -42,6 +42,9 @@ class Chromosome:
 
     def __repr__(self):
         return str(self)
+    
+    def __eq__(self, other):
+        return self.genes == other.genes
 
     def __init__(self, genes: Genes):
         self.genes = genes
