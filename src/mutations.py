@@ -32,8 +32,7 @@ def _gen_mutate(chromosome: Chromosome, individual: Individual):
 def gen_mutation(individuals: list[Individual]):
     mutation_chance: float = config["mutation_chance"]
     for individual in individuals:
-        chance = random.random()
-        if chance < mutation_chance:
+        if random.random() < mutation_chance:
             random_chromosome = random.choice(individual.chromosomes)
             _gen_mutate(random_chromosome, individual)
 

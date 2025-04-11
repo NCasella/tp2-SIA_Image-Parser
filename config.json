@@ -1,9 +1,10 @@
 {
   "continue_latest": false,
+  "save_progress": true,
   "triangles": 15,
-  "image_path": "images/nepal.jpg",
+  "image_path": "images/japan.png",
   "population": 100,
-  "quality_factor": 1,
+  "quality_factor": 0.25,
   "max_generations": 10000,
   "selection": "elite",
   "selection_amount": 70,
@@ -11,8 +12,8 @@
   "crossover_chance": 0.8,
   "mutation_strategy": "new",
   "mutation": "gen",
-  "mutation_chance": 0.1,
+  "mutation_chance": 0.05,
   "criteria": "traditional",
   "generation_gap": 0.5,
-  "uniform_crossover_chance":0.5
+  "uniform_crossover_chance": 0.5
 }

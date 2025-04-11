@@ -1,6 +1,10 @@
+import random
 import sys
 import logging
+from typing import Callable
+
 from PIL import Image
+import numpy as np
 
 from src.config import init_config, config
 from src.individual import Individual
@@ -10,8 +14,58 @@ from src.mutations import mutate
 from src.generations import next_generation
 import os
 import pickle
-import random
 from multiprocessing import Pool, cpu_count
+
+def apply_algorithm(logger: logging.Logger, population: list[Individual], width: int, height: int, func: Callable[[Individual, int, int, int], None]):
+  max_generations: int = config["max_generations"]
+  latest_gen: int = 0
+  latest_gen_individual: Individual = None
+  max_fitness: float = 0
+  convergence_counter: int = 0
+  convergence_max = 20
+  mutation_counter: int = 0
+  mutation_max = 20
+  try:
+    for generation in range(max_generations):
+      logger.info(f"Generation %s", generation)
+      selected_individuals = selection(population)
+      latest_gen = generation
+      latest_gen_individual = selected_individuals[0]
+      current_fitness = latest_gen_individual.fitness
+      convergence_counter += 1
+      if mutation_counter == mutation_max:
+        mutation_counter = 0
+        convergence_max += 5
+      if convergence_counter == convergence_max:
+        convergence_counter = 0
+        new_mutation = random.uniform(0, 1)
+        mutation_counter += 1
+        logger.info(f"Changing the mutation chance to {new_mutation}")
+        config["mutation_chance"] = new_mutation
+      if current_fitness > max_fitness:
+        convergence_counter = 0
+        max_fitness = current_fitness
+        logger.info(f"New max fitness: {current_fitness}")
+      func(latest_gen_individual, generation, width, height)
+      children = crossover(selected_individuals)
+      mutate(children)
+      population = next_generation(population, children)
+  finally:
+    logger.info("Stopping the algorithm...")
+    if latest_gen is not None:
+      logger.info(f"Reached generation {latest_gen}")
+    if latest_gen_individual:
+      logger.info(f"Last fitness {latest_gen_individual.fitness}")
+      latest_gen_individual.get_current_image(width, height).save(f"output/generation-{latest_gen}.png")
+    logger.info("Saving latest generation...")
+    with open("output/latest.pkl", "wb") as latest_file:
+      pickle.dump(population, latest_file)
+
+def save_individual(individual: Individual, generation: int, width: int, height: int):
+  individual.get_current_image(width, height).save(f"output/generation-{generation}.png")
+
+def noop(individual: Individual, generation: int, width: int, height: int):
+  pass
 
 def main():
 
@@ -35,11 +89,13 @@ def main():
   # read the original image
   image = Image.open(image_path).convert("RGBA")
   width, height = image.size
-  block_width, block_height = int(width * quality_factor), int(height * quality_factor)
+  width, height = int(width * quality_factor), int(height * quality_factor)
 
   # save the image on our config
-  config["image"] = image.resize((block_width, block_height))
-  config["max_coordinate"] = max(2 * width, 2 * height)
+  image = image.resize((width, height))
+  config["image"] = image
+  config["image_array"] = np.array(image.convert("L"), dtype=np.uint8)
+  config["max_coordinate"] = max(3 * width // 2, 3 * height // 2)
 
   os.makedirs("output", exist_ok=True)
 
@@ -64,24 +120,13 @@ def main():
     population.extend(individuals)
 
   # apply the method
-  max_generations: int = config["max_generations"]
 
-  max_fitness = 0
-  for generation in range(max_generations):
-    logger.info(f"Generation %s", generation)
-    selected_individuals = selection(population)
-    selected_individuals[0].get_current_image(width, height).save(f"output/generation-{generation}.png")
-    latest_fitness = selected_individuals[0].fitness
-    if latest_fitness > max_fitness:
-      max_fitness = latest_fitness
-      logger.info(f"New max fitness: {max_fitness}")
-    children = crossover(selected_individuals)
-    mutate(children)
-    population = next_generation(population, children)
-
-  # save the latest generation
-  with open("output/latest.pkl", "wb") as latest_file:
-    pickle.dump(population, latest_file)
+  save_progress: bool = config["save_progress"]
+  if save_progress:
+    func = save_individual
+  else:
+    func = noop
+  apply_algorithm(logger, population, width, height, func)
 
   image.close()
 

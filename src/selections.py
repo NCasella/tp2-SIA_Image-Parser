@@ -1,7 +1,6 @@
 from PIL.Image import Image
-from PIL.ImageChops import difference
-from PIL.ImageStat import Stat
-from PIL.ImageOps import invert
+from skimage.metrics import structural_similarity as ssim
+import numpy as np
 
 from src.individual import Individual
 from math import ceil, exp
@@ -23,19 +22,19 @@ def _optimized_calculate_fitness(individual: Individual):
 
 def _calculate_fitness(individual: Individual):
     image: Image = config["image"]
-    #temp_fitness = 0
+    image_arr: np.ndarray = config["image_array"]
     width, height = image.size
     output_img = individual.get_current_image(width, height)
+    output_arr = np.array(output_img.convert("L"), dtype=np.uint8)
 
-    stat = Stat(invert(difference(image, output_img).convert("RGB")))
-    return sum(stat.sum)
+    return ssim(image_arr, output_arr)
 
-    #for i in range(width):
-    #    for j in range(height):
-    #        pixel_out = output_img.getpixel((i, j))
-    #        pixel_ref = image.getpixel((i, j))
-    #        temp_fitness += sum(255 - abs(out - ref) for out, ref in zip(pixel_ref[:4], pixel_out[:4]))
-    #return temp_fitness
+def _get_fitness_values(individuals: list[Individual]):
+    with Pool(processes=(3 * cpu_count() // 4)) as pool:
+        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
+    for i, individual in enumerate(individuals):
+        individual.fitness = fitness_values[i]
+    return fitness_values
 
 def _roulette_selection(individuals: list[Individual], choice_amount: int, fitness_per_individual: list[float], fitness_sum: float):
     accumulated_fitness_per_individual=[0]
@@ -93,10 +92,7 @@ def universal_selection(individuals: list[Individual],choice_amount: int):
 def elite_selection(individuals: list[Individual],choice_amount: int):
 
     # we set the fitness of the individuals and sort them desc
-    with Pool() as pool:
-        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
-    for i, individual in enumerate(individuals):
-        individual.fitness = fitness_values[i]
+    _get_fitness_values(individuals)
     # new list, so we can modify it on the crossover
     sorted_individuals = sorted(individuals, key=lambda ind: ind.fitness, reverse=True)
 
@@ -116,7 +112,7 @@ def elite_selection(individuals: list[Individual],choice_amount: int):
 def deterministic_tournament_selection(individuals: list[Individual],choice_amount: int):
     tournament_size=10 #TODO hacer el M dinamico
     fitness_per_individual=[_calculate_fitness(individual=individual) for individual in individuals]
-    
+
     selected_individuals=[]
     while len(selected_individuals)<choice_amount:
         tournament_indices = random.sample(range(len(individuals)), tournament_size)
@@ -143,9 +139,7 @@ def probabilistic_tournament_selection(individuals: list[Individual],choice_amou
 
 def boltzmann_selection(individuals: list[Individual],choice_amount: int):
     temperature = config["temperature"]
-    fitness_per_individual=[]
-    with Pool() as pool:
-        fitness_per_individual = pool.map(_optimized_calculate_fitness, individuals)
+    fitness_per_individual = _get_fitness_values(individuals)
     
     fitness_sum = sum(fitness_per_individual)
     #calcular la pseudo-aptitud ExpVal() con la aptiitud normalizada, sino la aptitud es demasiado grande para el exponente
