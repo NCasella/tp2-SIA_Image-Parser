@@ -8,7 +8,7 @@ def _young_next_generation(current_population: list[Individual], children: list[
     if K>N:
         return random.choices(children,k=N)
     selected_current_population=random.choices(current_population,k=N-K)
-    selected_new_generation=random.choices(children,k=N)
+    selected_new_generation=random.choices(children,k=K)
     return selected_current_population+selected_new_generation
 
 def _traditional_next_generation(current_population: list[Individual], children: list[Individual]) -> list[Individual]:
