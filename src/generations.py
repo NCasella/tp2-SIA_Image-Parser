@@ -6,7 +6,7 @@ def _young_next_generation(current_population: list[Individual], children: list[
     K:int=config["selection_amount"]
     N:int =config["population"]
     if K>N:
-        return random.choices(children,K=N)
+        return random.choices(children,k=N)
     selected_current_population=random.choices(current_population,k=N-K)
     selected_new_generation=random.choices(children,k=N)
     return selected_current_population+selected_new_generation
