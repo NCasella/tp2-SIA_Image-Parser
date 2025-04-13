@@ -2,7 +2,7 @@ from numpy import random
 
 from typing import TypeAlias
 from src.config import config
-from numpy import uint8
+
 
 RGBA: TypeAlias = list[int]
 XY: TypeAlias = tuple[float,float]
@@ -25,8 +25,8 @@ class Chromosome:
     @staticmethod
     def generate_random_gene(index: int):
         if index == 0:
-            alpha = random.randint(low=100, high=128, dtype=uint8)
-            rgb = random.randint(low=0, high=255, size=3, dtype=uint8)
+            alpha = random.randint(low=100, high=128)
+            rgb = random.randint(low=0, high=255, size=3)
             return RGBA((rgb[0],rgb[1],rgb[2],alpha))
         elif index == 1:
             max_coordinate: float = config["max_coordinate"]
