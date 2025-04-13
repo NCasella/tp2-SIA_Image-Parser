@@ -11,7 +11,23 @@ def _new(genes: Genes, index: int):
 
 # this is the other one
 def _delta(genes: Genes, index: int):
-    pass
+    if index == 0:
+        delta = random.randint(-30, 30)
+        idx = random.randint(0, 3)
+        if delta < 0:
+            genes[index][idx] = max(genes[index][idx] + delta, 0)
+        else:
+            genes[index][idx] = min(genes[index][idx] + delta, 255)
+    elif index == 1:
+        max_coordinate = config["max_coordinate"]
+        delta = random.randint(-int(max_coordinate * 0.1), int(max_coordinate * 0.1))
+        idx = random.randint(0, 2)
+        axis = random.randint(0, 1)
+        if axis == 0:
+            genes[index][idx] = (genes[index][idx][axis] + delta, genes[index][idx][1])
+        else:
+            genes[index][idx] = (genes[index][idx][0], genes[index][idx][axis] + delta)
+
 
 def _mutate_gene_at(genes: Genes, index: int):
     mutation_strategy: str = config["mutation_strategy"]
