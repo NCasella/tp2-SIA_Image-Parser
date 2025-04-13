@@ -27,9 +27,9 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
   mutation_max = 20
   for generation in range(max_generations):
     logger.info(f"Generation %s", generation)
-    selected_individuals = sorted(selection(population), key=lambda inf:inf.fitness,reverse=True)
+    selected_individuals = selection(population)
     latest_gen = generation
-    latest_gen_individual = selected_individuals[0]
+    latest_gen_individual = max(selected_individuals, key=lambda inf:inf.fitness)
     current_fitness = latest_gen_individual.fitness
     convergence_counter += 1
     if mutation_counter == mutation_max:
@@ -59,6 +59,7 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
     logger.info("Saving latest generation...")
     with open(config["output_folder"] + "/latest.pkl", "wb") as latest_file:
       pickle.dump(population, latest_file)
+
 
 def save_individual(individual: Individual, generation: int, width: int, height: int):
   individual.get_current_image(width, height).save(config["output_folder"] + f"/generation-{generation}.png")
