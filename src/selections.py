@@ -25,7 +25,7 @@ def _calculate_fitness(individual: Individual):
     image_arr: np.ndarray = config["image_array"]
     width, height = image.size
     output_img = individual.get_current_image(width, height)
-    output_arr = np.array(output_img.convert("RGB"), dtype=np.float32)
+    output_arr = np.array(output_img.convert("L"), dtype=np.float32)
     fitness=ssim(image_arr, output_arr,data_range=255,channel_axis=-1,multiscale=True) + 2*compute_deltaE(image_arr,output_arr)
     individual.fitness=fitness
     return fitness
@@ -44,7 +44,7 @@ def compute_deltaE(image1_array,image2_array):
 
 def _get_fitness_values(individuals: list[Individual]):
     with Pool(processes=(3 * cpu_count() // 4)) as pool:
-        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
+       fitness_values = pool.map(_optimized_calculate_fitness, individuals)
     for i, individual in enumerate(individuals):
         individual.fitness = fitness_values[i]
     return fitness_values
@@ -67,9 +67,8 @@ def _roulette_selection(individuals: list[Individual], choice_amount: int, fitne
     return selected_individuals
 
 def roulette_selection(individuals: list[Individual],choice_amount: int):
-    fitness_sum=0
     fitness_per_individual=_get_fitness_values(individuals)
-    
+    fitness_sum = sum(fitness_per_individual)
     return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=fitness_per_individual, fitness_sum=fitness_sum)
 
 def universal_selection(individuals: list[Individual],choice_amount: int):
