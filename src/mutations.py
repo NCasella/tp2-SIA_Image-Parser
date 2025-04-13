@@ -12,7 +12,7 @@ def _new(genes: Genes, index: int):
 # this is the other one
 def _delta(genes: Genes, index: int):
     if index == 0:
-        delta = random.randint(-30, 30)
+        delta = random.randint(-64, 64)
         idx = random.randint(0, 3)
         if delta < 0:
             genes[index][idx] = max(genes[index][idx] + delta, 0)
@@ -20,7 +20,7 @@ def _delta(genes: Genes, index: int):
             genes[index][idx] = min(genes[index][idx] + delta, 255)
     elif index == 1:
         max_coordinate = config["max_coordinate"]
-        delta = random.randint(-int(max_coordinate * 0.1), int(max_coordinate * 0.1))
+        delta = random.randint(-int(max_coordinate * 0.3), int(max_coordinate * 0.3))
         idx = random.randint(0, 2)
         axis = random.randint(0, 1)
         if axis == 0:
