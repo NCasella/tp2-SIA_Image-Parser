@@ -1,14 +1,14 @@
 {
   "continue_latest": false,
   "save_progress": true,
-  "polygon_amount": 300,
+  "polygon_amount": 50,
   "vertices": 3,
   "image_path": "images/linux.png",
   "output_folder": "output/linux",
   "population": 100,
   "quality_factor": 0.5,
   "max_generations": 10000,
-  "selection": "elite",
+  "selection": "boltzmann",
   "selection_amount": 70,
   "crossover": "one_point",
   "crossover_chance": 0.8,
@@ -17,5 +17,7 @@
   "mutation_chance": 0.05,
   "criteria": "traditional",
   "generation_gap": 1.0,
-  "uniform_crossover_chance": 0.5
+  "uniform_crossover_chance": 0.5,
+  "initial_temperature": 0.8,
+  "min_temperature": 0.2
 }

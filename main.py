@@ -37,6 +37,7 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
     csv_file.write("generation;mean_fitness;std_fitness;best_fitness\n")
     for generation in range(max_generations):
       logger.info(f"Generation %s", generation)
+      config["generation"] = generation
       selected_individuals = selection(population)
       latest_gen = generation
       latest_gen_individual = max(selected_individuals, key=lambda inf:inf.fitness)
@@ -110,7 +111,7 @@ def main():
   # save the image on our config
   image = image.resize((width, height))
   config["image"] = image
-  config["image_array"] = np.array(image.convert("L"), dtype=np.float32)
+  config["image_array"] = np.array(image, dtype=np.float32)
   config["max_coordinate"] = max(3 * width // 2, 3 * height // 2)
 
   # generate the initial population
