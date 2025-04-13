@@ -25,32 +25,31 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
   convergence_max = 20
   mutation_counter: int = 0
   mutation_max = 20
-  try:
-    for generation in range(max_generations):
-      logger.info(f"Generation %s", generation)
-      selected_individuals = selection(population)
-      latest_gen = generation
-      latest_gen_individual = selected_individuals[0]
-      current_fitness = latest_gen_individual.fitness
-      convergence_counter += 1
-      if mutation_counter == mutation_max:
-        mutation_counter = 0
-        convergence_max += 5
-      if convergence_counter == convergence_max:
-        convergence_counter = 0
-        new_mutation = random.uniform(0, 1)
-        mutation_counter += 1
-        logger.info(f"Changing the mutation chance to {new_mutation}")
-        config["mutation_chance"] = new_mutation
-      if current_fitness > max_fitness:
-        convergence_counter = 0
-        max_fitness = current_fitness
-        logger.info(f"New max fitness: {current_fitness}")
-      func(latest_gen_individual, generation, width, height)
-      children = crossover(selected_individuals)
-      mutate(children)
-      population = next_generation(population, children)
-  finally:
+  for generation in range(max_generations):
+    logger.info(f"Generation %s", generation)
+    selected_individuals = sorted(selection(population), key=lambda inf:inf.fitness,reverse=True)
+    latest_gen = generation
+    latest_gen_individual = selected_individuals[0]
+    current_fitness = latest_gen_individual.fitness
+    convergence_counter += 1
+    if mutation_counter == mutation_max:
+      mutation_counter = 0
+      convergence_max += 5
+    if convergence_counter == convergence_max:
+      convergence_counter = 0
+      new_mutation = random.uniform(0, 1)
+      mutation_counter += 1
+      logger.info(f"Changing the mutation chance to {new_mutation}")
+      config["mutation_chance"] = new_mutation
+    if current_fitness > max_fitness:
+      convergence_counter = 0
+      max_fitness = current_fitness
+      logger.info(f"New max fitness: {current_fitness}")
+      latest_gen_individual.get_current_image(width, height).save(f"output/best_current_individual.png")
+    func(latest_gen_individual, generation, width, height)
+    children = crossover(selected_individuals)
+    mutate(children)
+    population = next_generation(population, children)
     logger.info("Stopping the algorithm...")
     if latest_gen is not None:
       logger.info(f"Reached generation {latest_gen}")
@@ -94,7 +93,7 @@ def main():
   # save the image on our config
   image = image.resize((width, height))
   config["image"] = image
-  config["image_array"] = np.array(image.convert("L"), dtype=np.uint8)
+  config["image_array"] = np.array(image.convert("RGB"), dtype=np.float32)
   config["max_coordinate"] = max(3 * width // 2, 3 * height // 2)
 
   os.makedirs("output", exist_ok=True)

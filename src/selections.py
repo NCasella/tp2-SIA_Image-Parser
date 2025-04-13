@@ -6,7 +6,7 @@ from src.individual import Individual
 from math import ceil, exp
 from src.config import config
 import random
-
+from skimage.color import rgb2lab, deltaE_ciede2000 as deltaE
 from multiprocessing import Pool, cpu_count
 
 def _optimized_calculate_fitness(individual: Individual):
@@ -25,9 +25,22 @@ def _calculate_fitness(individual: Individual):
     image_arr: np.ndarray = config["image_array"]
     width, height = image.size
     output_img = individual.get_current_image(width, height)
-    output_arr = np.array(output_img.convert("L"), dtype=np.uint8)
+    output_arr = np.array(output_img.convert("RGB"), dtype=np.float32)
+    fitness=ssim(image_arr, output_arr,data_range=255,channel_axis=-1,multiscale=True) + 2*compute_deltaE(image_arr,output_arr)
+    individual.fitness=fitness
+    return fitness
 
-    return ssim(image_arr, output_arr)
+def compute_deltaE(image1_array,image2_array):
+    rgb1 = image1_array[...,:3] / 255.0
+    rgb2 = image2_array[...,:3] / 255.0
+    lab1 = rgb2lab(rgb1)
+    lab2 = rgb2lab(rgb2)
+    delta_e = deltaE(lab1, lab2)
+    mean_delta_e = np.mean(delta_e)
+
+    # Normalize: higher ΔE = worse match → map to fitness-like score
+    similarity = np.exp(-mean_delta_e/10.0)
+    return similarity
 
 def _get_fitness_values(individuals: list[Individual]):
     with Pool(processes=(3 * cpu_count() // 4)) as pool:
@@ -55,21 +68,13 @@ def _roulette_selection(individuals: list[Individual], choice_amount: int, fitne
 
 def roulette_selection(individuals: list[Individual],choice_amount: int):
     fitness_sum=0
-    fitness_per_individual=[]
-    for individual in individuals:
-        individual_fitness=_calculate_fitness(individual=individual)
-        fitness_sum+=individual_fitness
-        fitness_per_individual.append(individual_fitness)
+    fitness_per_individual=_get_fitness_values(individuals)
     
     return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=fitness_per_individual, fitness_sum=fitness_sum)
 
 def universal_selection(individuals: list[Individual],choice_amount: int):
-    fitness_sum=0
-    fitness_per_individual=[]
-    for individual in individuals:
-        individual_fitness=_calculate_fitness(individual=individual)
-        fitness_sum+=individual_fitness
-        fitness_per_individual.append(individual_fitness)
+    fitness_per_individual=_get_fitness_values(individuals)
+    fitness_sum=sum(fitness_per_individual)
     
     accumulated_fitness_per_individual=[0]
     last_accumulated_fitness=0
@@ -90,7 +95,6 @@ def universal_selection(individuals: list[Individual],choice_amount: int):
     
 
 def elite_selection(individuals: list[Individual],choice_amount: int):
-
     # we set the fitness of the individuals and sort them desc
     _get_fitness_values(individuals)
     # new list, so we can modify it on the crossover
@@ -110,9 +114,8 @@ def elite_selection(individuals: list[Individual],choice_amount: int):
     return new_list
 
 def deterministic_tournament_selection(individuals: list[Individual],choice_amount: int):
-    tournament_size=10 #TODO hacer el M dinamico
-    fitness_per_individual=[_calculate_fitness(individual=individual) for individual in individuals]
-
+    tournament_size=10 
+    fitness_per_individual=_get_fitness_values(individuals)
     selected_individuals=[]
     while len(selected_individuals)<choice_amount:
         tournament_indices = random.sample(range(len(individuals)), tournament_size)
