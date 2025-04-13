@@ -3,8 +3,8 @@ import os
 import re
 
 # Folder containing the images
-input_folder = "vangogh"
-output_gif = "output.gif"
+input_folder = "images/linux"
+output_gif = "linux.gif"
 frame_duration = 40  # milliseconds between frames
 
 # Regex to match 'generation-<number>.png'
@@ -20,7 +20,7 @@ for filename in os.listdir(input_folder):
 
 # Sort and select every 5th image
 image_files.sort(key=lambda x: x[0])
-sampled_files = [os.path.join(input_folder, f[1]) for i, f in enumerate(image_files) if i % 7 == 0]
+sampled_files = [os.path.join(input_folder, f[1]) for i, f in enumerate(image_files) if i % 10 == 0]
 
 # Load frames
 frames = [Image.open(path) for path in sampled_files]

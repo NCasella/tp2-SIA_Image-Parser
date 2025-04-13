@@ -45,7 +45,7 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
       convergence_counter = 0
       max_fitness = current_fitness
       logger.info(f"New max fitness: {current_fitness}")
-      latest_gen_individual.get_current_image(width, height).save(f"output/best_current_individual.png")
+      latest_gen_individual.get_current_image(width, height).save(config["output_folder"] + f"/best_current_individual.png")
     func(latest_gen_individual, generation, width, height)
     children = crossover(selected_individuals)
     mutate(children)
@@ -55,13 +55,13 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
       logger.info(f"Reached generation {latest_gen}")
     if latest_gen_individual:
       logger.info(f"Last fitness {latest_gen_individual.fitness}")
-      latest_gen_individual.get_current_image(width, height).save(f"output/generation-{latest_gen}.png")
+      latest_gen_individual.get_current_image(width, height).save(config["output_folder"] + f"/generation-{latest_gen}.png")
     logger.info("Saving latest generation...")
-    with open("output/latest.pkl", "wb") as latest_file:
+    with open(config["output_folder"] + "/latest.pkl", "wb") as latest_file:
       pickle.dump(population, latest_file)
 
 def save_individual(individual: Individual, generation: int, width: int, height: int):
-  individual.get_current_image(width, height).save(f"output/generation-{generation}.png")
+  individual.get_current_image(width, height).save(config["output_folder"] + f"/generation-{generation}.png")
 
 def noop(individual: Individual, generation: int, width: int, height: int):
   pass
@@ -96,14 +96,14 @@ def main():
   config["image_array"] = np.array(image.convert("RGB"), dtype=np.float32)
   config["max_coordinate"] = max(3 * width // 2, 3 * height // 2)
 
-  os.makedirs("output", exist_ok=True)
+  os.makedirs(config["output_folder"], exist_ok=True)
 
   # generate the initial population
   population: list[Individual] = []
 
   continue_latest: bool = config["continue_latest"]
-  if continue_latest and os.path.isfile("output/latest.pkl"):
-    with open("output/latest.pkl", "rb") as latest_file:
+  if continue_latest and os.path.isfile(config["output_folder"] + "/latest.pkl"):
+    with open(config["output_folder"] + "/latest.pkl", "rb") as latest_file:
       logger.info("Using the latest generation as the initial population...")
       population = pickle.load(latest_file)
       if len(population) < population_amount:
