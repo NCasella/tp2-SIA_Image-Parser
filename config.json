@@ -10,6 +10,7 @@
   "max_generations": 10000,
   "selection": "boltzmann",
   "selection_amount": 70,
+  "probabilistic_threshold": 0.8,
   "crossover": "one_point",
   "crossover_chance": 0.8,
   "mutation_strategy": "delta",

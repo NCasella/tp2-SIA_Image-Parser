@@ -130,7 +130,7 @@ def probabilistic_tournament_selection(individuals: list[Individual],choice_amou
     selected_individuals=[]
     
     while(len(selected_individuals)) < choice_amount:
-        threshold = random.uniform(0.5, 1)
+        threshold = config["probabilistic_threshold"]
         individual1,individual2 = random.sample(individuals,k=2)
         r = random.uniform(0,1)
         best_fit_individual = individual1 if _calculate_fitness(individual=individual1)>_calculate_fitness(individual=individual2) else individual2
