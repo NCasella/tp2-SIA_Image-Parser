@@ -2,8 +2,8 @@
   "continue_latest": false,
   "save_progress": true,
   "triangles": 50,
-  "image_path": "images/linux.jpg",
-  "output_folder": "output",
+  "image_path": "images/foolish.jpg",
+  "output_folder": "foolishYoung",
   "population": 100,
   "quality_factor": 0.5,
   "max_generations": 10000,
@@ -14,7 +14,7 @@
   "mutation_strategy": "delta",
   "mutation": "gen",
   "mutation_chance": 0.05,
-  "criteria": "traditional",
+  "criteria": "young",
   "generation_gap": 0.5,
   "uniform_crossover_chance": 0.5
 }
