@@ -30,7 +30,8 @@ class Chromosome:
             return RGBA((rgb[0],rgb[1],rgb[2],alpha))
         elif index == 1:
             max_coordinate: float = config["max_coordinate"]
-            vertices_arr = random.uniform(low=-max_coordinate, high=max_coordinate, size=(3, 2))
+            vertices: int = config["vertices"]
+            vertices_arr = random.uniform(low=-max_coordinate, high=max_coordinate, size=(vertices, 2))
             return [tuple(row) for row in vertices_arr]
 
 

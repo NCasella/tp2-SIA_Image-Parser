@@ -25,7 +25,7 @@ def _calculate_fitness(individual: Individual):
     image_arr: np.ndarray = config["image_array"]
     width, height = image.size
     output_img = individual.get_current_image(width, height)
-    output_arr = np.array(output_img.convert("RGB"), dtype=np.float32)
+    output_arr = np.array(output_img, dtype=np.float32)
     fitness=ssim(image_arr, output_arr,data_range=255,channel_axis=-1,multiscale=True) + 2*compute_deltaE(image_arr,output_arr)
     individual.fitness=fitness
     return fitness
@@ -44,7 +44,7 @@ def compute_deltaE(image1_array,image2_array):
 
 def _get_fitness_values(individuals: list[Individual]):
     with Pool(processes=(3 * cpu_count() // 4)) as pool:
-        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
+       fitness_values = pool.map(_optimized_calculate_fitness, individuals)
     for i, individual in enumerate(individuals):
         individual.fitness = fitness_values[i]
     return fitness_values
@@ -67,9 +67,8 @@ def _roulette_selection(individuals: list[Individual], choice_amount: int, fitne
     return selected_individuals
 
 def roulette_selection(individuals: list[Individual],choice_amount: int):
-    fitness_sum=0
     fitness_per_individual=_get_fitness_values(individuals)
-    
+    fitness_sum = sum(fitness_per_individual)
     return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=fitness_per_individual, fitness_sum=fitness_sum)
 
 def universal_selection(individuals: list[Individual],choice_amount: int):
@@ -88,7 +87,7 @@ def universal_selection(individuals: list[Individual],choice_amount: int):
         r=random.uniform(0,1)
         ri=(r+i)/choice_amount
         for p in range(len(accumulated_fitness_per_individual)-1):
-            if accumulated_fitness_per_individual[p]<ri and ri<=accumulated_fitness_per_individual[p+1]:
+            if accumulated_fitness_per_individual[p] < ri <= accumulated_fitness_per_individual[p + 1]:
                 selected_individuals.append(individuals[p])
                 break
     return selected_individuals
@@ -130,56 +129,48 @@ def deterministic_tournament_selection(individuals: list[Individual],choice_amou
 def probabilistic_tournament_selection(individuals: list[Individual],choice_amount: int):
     selected_individuals=[]
     
-    while(len(selected_individuals))<choice_amount:
-        threshold=random.uniform(0.5, 1)
-        individual1,individual2=random.sample(individuals,k=2)
-        r=random.uniform(0,1)
-        best_fit_individual=individual1 if _calculate_fitness(individual=individual1)>_calculate_fitness(individual=individual2) else individual2
-        worst_fit_individual=individual2 if best_fit_individual==individual1 else individual1
-        selected_individuals.append(best_fit_individual) if r<threshold else selected_individuals.append(worst_fit_individual)
+    while(len(selected_individuals)) < choice_amount:
+        threshold = config["probabilistic_threshold"]
+        individual1,individual2 = random.sample(individuals,k=2)
+        r = random.uniform(0,1)
+        best_fit_individual = individual1 if _calculate_fitness(individual=individual1)>_calculate_fitness(individual=individual2) else individual2
+        worst_fit_individual = individual2 if best_fit_individual == individual1 else individual1
+        selected_individuals.append(best_fit_individual) if r < threshold else selected_individuals.append(worst_fit_individual)
         
     return selected_individuals
 
 def boltzmann_selection(individuals: list[Individual],choice_amount: int):
-    temperature = config["temperature"]
+    initial_temperature: float = config["initial_temperature"]
+    min_temperature: float = config["min_temperature"]
+    decreasing_constant = 1/10
+    temperature = min_temperature + (initial_temperature - min_temperature) * exp(-decreasing_constant * config["generation"])
     fitness_per_individual = _get_fitness_values(individuals)
-    
-    fitness_sum = sum(fitness_per_individual)
-    #calcular la pseudo-aptitud ExpVal() con la aptiitud normalizada, sino la aptitud es demasiado grande para el exponente
-    #solo el numerador de ExpVal():
-    exp_fitness_per_individual=[exp(fitness/fitness_sum/temperature) for fitness in fitness_per_individual]
-    exp_sum=sum(exp_fitness_per_individual)
 
-    #dividiendo por el promedio -> denominador de ExpVal():
-    average=exp_sum/len(exp_fitness_per_individual)
-    exp_fitness_per_individual=[fitness/average for fitness in exp_fitness_per_individual]
-    exp_fitness_sum=exp_sum/average
+    exp_fitness_per_individual = [exp(fitness/temperature) for fitness in fitness_per_individual]
+    exp_sum = sum(exp_fitness_per_individual)
+    exp_fitness_avg = exp_sum / len(exp_fitness_per_individual)
+    exp_fitness_per_individual[:] = [fit / exp_fitness_avg for fit in exp_fitness_per_individual]
+    exp_fitness_sum = exp_sum / exp_fitness_avg
 
     return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=exp_fitness_per_individual, fitness_sum=exp_fitness_sum)
 
-def ranking_selecion(individuals: list[Individual],choice_amount: int):
-    N=len(individuals)
+def ranking_selection(individuals: list[Individual],choice_amount: int):
+    N = len(individuals)
 
-    fitness_sum=0
-    fitness_per_individual=[]
-    for individual in individuals:
-        individual_fitness=_calculate_fitness(individual=individual)
-        fitness_sum+=individual_fitness
-        fitness_per_individual.append((individual, individual_fitness))
-    
-    sorted_fitness = sorted(fitness_per_individual, key=lambda x: x[1], reverse=True)
-    sorted_individuals = [individual for individual, _ in sorted_fitness]
+    fitness_per_individual = _get_fitness_values(individuals)
+    for idx, individual in enumerate(individuals):
+        individual.fitness = fitness_per_individual[idx]
 
-    ranked_fitness_sum=0
+    sorted_individuals = sorted(individuals, key=lambda x: x.fitness, reverse=True)
+
+    ranked_fitness_sum = 0
     ranked_fitness = []
     for individual in individuals:
         rank = sorted_individuals.index(individual) + 1
         ranked_fitness.append((N-rank)/N)
-        ranked_fitness_sum+=(N-rank)/N
+        ranked_fitness_sum += (N-rank)/N
 
     return _roulette_selection(individuals=individuals, choice_amount=choice_amount, fitness_per_individual=ranked_fitness, fitness_sum=ranked_fitness_sum)
-    
-
 
 def selection(individuals: list[Individual]) -> list[Individual]:
     selection_method: str = config["selection"]
@@ -191,6 +182,6 @@ def selection(individuals: list[Individual]) -> list[Individual]:
         "probabilistic_tournament": probabilistic_tournament_selection,
         "boltzmann": boltzmann_selection,
         "universal": universal_selection,
-        "ranking": ranking_selecion,
+        "ranking": ranking_selection,
     }
     return selection_methods[selection_method](individuals, choice_amount)
