@@ -7,7 +7,6 @@ import random
 
 
 def point_crossover(selected_individuals: list[Individual]) -> list[Individual]:
-    crossover_chance: float = config["crossover_chance"]
     new_population: list[Individual] = []
 
     random.shuffle(selected_individuals)
@@ -15,9 +14,20 @@ def point_crossover(selected_individuals: list[Individual]) -> list[Individual]:
 
     chromosomes_amount = len(selected_individuals[0].chromosomes)
 
+    fitness_max = config["fitness_max"]
+    fitness_avg = config["fitness_avg"]
+
+    pc1 = 0.9
+    pc2 = 0.6
+
     for i in range(0, _length - 1, 2):
         first = copy.deepcopy(selected_individuals[i])
         second = copy.deepcopy(selected_individuals[i + 1])
+        max_local_fitness = max(first.fitness, second.fitness)
+        if max_local_fitness >= fitness_avg:
+            crossover_chance = pc1 - (pc1 - pc2) * (max_local_fitness - fitness_avg) / (fitness_max - fitness_avg)
+        else:
+            crossover_chance = pc1
         for j in range(chromosomes_amount):
             if random.random() < crossover_chance:
                 first_genes = first.chromosomes[j].genes

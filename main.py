@@ -29,43 +29,26 @@ def apply_algorithm(logger: logging.Logger, population: list[Individual], width:
   latest_gen: int = 0
   latest_gen_individual: Individual = None
   max_fitness: float = 0
-  convergence_counter: int = 0
-  convergence_max = 20
-  mutation_counter: int = 0
-  mutation_max = 20
   with open(f"{output_folder}/output.csv", "a+", newline="") as csv_file:
     csv_file.write("generation;mean_fitness;std_fitness;best_fitness\n")
     for generation in range(max_generations):
-      logger.info(f"Generation %s", generation)
+      logger.info("Starting generation %s...", generation)
       config["generation"] = generation
       selected_individuals = selection(population)
       latest_gen = generation
       latest_gen_individual = max(selected_individuals, key=lambda inf:inf.fitness)
       current_fitness = latest_gen_individual.fitness
-      convergence_counter += 1
-      if mutation_counter == mutation_max:
-        mutation_counter = 0
-        convergence_max += 5
-      if convergence_counter == convergence_max:
-        convergence_counter = 0
-        new_mutation = random.uniform(0, 1)
-        mutation_counter += 1
-        logger.info(f"Changing the mutation chance to {new_mutation}")
-        config["mutation_chance"] = new_mutation
       if current_fitness > max_fitness:
-        convergence_counter = 0
         max_fitness = current_fitness
-        logger.info(f"New max fitness: {current_fitness}")
+        logger.info("New max fitness: %s", current_fitness)
         latest_gen_individual.get_current_image(width, height).save(output_folder + f"/best_current_individual.png")
       dump_csv(csv_file, generation, population, max_fitness)
       func(latest_gen_individual, generation, width, height)
       children = crossover(selected_individuals)
       mutate(children)
       population = next_generation(population, children)
-      if latest_gen is not None:
-        logger.info(f"Reached generation {latest_gen}")
       if latest_gen_individual:
-        logger.info(f"Last fitness {latest_gen_individual.fitness}")
+        logger.info("Last fitness %s", latest_gen_individual.fitness)
         latest_gen_individual.get_current_image(width, height).save(output_folder + f"/generation-{latest_gen}.png")
       logger.info("Saving latest generation...")
       with open(output_folder + "/latest.pkl", "wb") as latest_file:

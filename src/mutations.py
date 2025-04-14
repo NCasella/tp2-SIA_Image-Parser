@@ -46,8 +46,17 @@ def _gen_mutate(chromosome: Chromosome, individual: Individual):
     individual.fitness = 0.0
 
 def gen_mutation(individuals: list[Individual]):
-    mutation_chance: float = config["mutation_chance"]
+    fitness_max = config["fitness_max"]
+    fitness_avg = config["fitness_avg"]
+
+    pm1 = 0.1
+    pm2 = 0.001
     for individual in individuals:
+        fitness = individual.fitness
+        if fitness >= fitness_avg:
+            mutation_chance = pm1 - (pm1 - pm2) * (fitness_max - fitness) / (fitness_max - fitness_avg)
+        else:
+            mutation_chance = pm1
         if random.random() < mutation_chance:
             random_chromosome = random.choice(individual.chromosomes)
             _gen_mutate(random_chromosome, individual)

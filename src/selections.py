@@ -45,8 +45,12 @@ def compute_deltaE(image1_array,image2_array):
 def _get_fitness_values(individuals: list[Individual]):
     with Pool(processes=(3 * cpu_count() // 4)) as pool:
        fitness_values = pool.map(_optimized_calculate_fitness, individuals)
+    fitness_max = max(fitness_values)
+    fitness_avg = np.mean(fitness_values)
     for i, individual in enumerate(individuals):
         individual.fitness = fitness_values[i]
+    config["fitness_max"] = fitness_max
+    config["fitness_avg"] = fitness_avg
     return fitness_values
 
 def _roulette_selection(individuals: list[Individual], choice_amount: int, fitness_per_individual: list[float], fitness_sum: float):
