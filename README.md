@@ -11,3 +11,9 @@ Dentro del archivo ```config.json``` se encuentran todos los parametros que reci
 - mutation: [ "gen", "uniform" ]
 - mutation_strategy: [ "new", "delta" ]
 - criteria: [ "traditional", "young" ]
+
+Para ejecutar múltiples archivos de configuración de forma paralela se debe correr:
+
+``python3 batch_run.py``
+
+Esto ejecutará todos los archivos de configuración dentro de la carpeta ``batch_config``
