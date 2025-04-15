@@ -1,5 +1,5 @@
 # Tp2-SIA_Image-Parser
-Para ejecutar el motor de generacion de imagenes se debe correr:
+## Para ejecutar el motor de generacion de imagenes se debe correr:
 
 ``python3 main.py config.json``
 
@@ -27,7 +27,7 @@ Dentro del archivo ```config.json``` se encuentran todos los parametros que reci
 - initial_temperature: float [0.0-1.0]
 - min_temperature: float
 
-Para ejecutar múltiples archivos de configuración de forma paralela se debe correr:
+## Para ejecutar múltiples archivos de configuración de forma paralela se debe correr:
 
 ``python3 batch_run.py``
 
