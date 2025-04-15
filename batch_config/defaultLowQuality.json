@@ -1,7 +1,8 @@
 {
   "continue_latest": false,
   "save_progress": true,
-  "triangles": 50,
+  "polygon_amount": 50,
+  "vertices": 3,
   "image_path": "images/foolish.jpg",
   "output_folder": "foolishLQ",
   "population": 100,
@@ -9,6 +10,7 @@
   "max_generations": 10000,
   "selection": "deterministic_tournament",
   "selection_amount": 100,
+  "probabilistic_threshold": 0.8,
   "crossover": "uniform",
   "crossover_chance": 0.8,
   "mutation_strategy": "delta",
@@ -16,5 +18,7 @@
   "mutation_chance": 0.05,
   "criteria": "traditional",
   "generation_gap": 0.5,
-  "uniform_crossover_chance": 0.5
+  "uniform_crossover_chance": 0.5,
+  "initial_temperature": 0.8,
+  "min_temperature": 0.2
 }
