@@ -1,3 +1,5 @@
 numpy
 pillow
 scikit-image
+pandas
+matplot
